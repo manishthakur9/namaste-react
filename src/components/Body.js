@@ -3,37 +3,58 @@ import RestaurantCard from "./RestaurantCard";
 import Shimmer from "./Shimmer";
 
 const Body = () => {
-  const [listOfRestaurants, setListOfRestaurant] = useState([]);
-
+  const [listOfRestaurants, setListOfRestaurants] = useState([]);
+  const [filteredRestaurant, setFilteredRestaurant] = useState([]);
   const [searchText, setSearchText] = useState("");
-
-  console.log("Body Rendered");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const data = await fetch(
-      "https://www.swiggy.com/dapi/restaurants/list/v5?lat=28.65200&lng=77.16630&collection=80424&tags=layout_CCS_Dosa&sortBy=&filters=&type=rcv2&offset=0&page_type=null"
-    );
+    try {
+      const response = await fetch(
+        "https://www.swiggy.com/dapi/restaurants/list/v5?lat=27.897868499204407&lng=78.08706876242677&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
+      );
 
-    const json = await data.json();
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
 
-    console.log(json);
+      const json = await response.json();
+      console.log("Full API response:", json);
 
-    setListOfRestaurant(json?.data?.cards);
+      const restaurants =
+        json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle
+          ?.restaurants || [];
+      console.log("Fetched restaurants:", restaurants);
+
+      setListOfRestaurants(restaurants);
+      setFilteredRestaurant(restaurants);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (listOfRestaurants.length == 0) {
+  if (isLoading) {
     return <Shimmer />;
   }
 
   const topratedListHandler = () => {
     const filteredList = listOfRestaurants.filter((res) => {
-      return res?.card?.card?.info?.avgRating > 4;
+      return res?.info?.avgRating > 4;
     });
-    setListOfRestaurant(filteredList);
+    setFilteredRestaurant(filteredList);
+  };
+
+  const handleSearch = () => {
+    const filteredList = listOfRestaurants.filter((res) =>
+      res?.info?.name?.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setFilteredRestaurant(filteredList);
   };
 
   return (
@@ -44,25 +65,22 @@ const Body = () => {
             type="text"
             className="search-box"
             value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value);
-            }}
+            onChange={(e) => setSearchText(e.target.value)}
           />
-          <button onClick={() => {}}>Search</button>
+          <button onClick={handleSearch}>Search</button>
         </div>
         <button className="filter-btn" onClick={topratedListHandler}>
           Top Rated Restaurant
         </button>
       </div>
       <div className="res-container">
-        {listOfRestaurants?.map((restaurant, index) => {
-          return (
-            <RestaurantCard
-              key={index}
-              resData={restaurant?.card?.card?.info}
-            />
-          );
-        })}
+        {filteredRestaurant.length === 0 ? (
+          <p>No restaurants found</p>
+        ) : (
+          filteredRestaurant.map((restaurant, index) => (
+            <RestaurantCard key={index} resData={restaurant?.info} />
+          ))
+        )}
       </div>
     </div>
   );
