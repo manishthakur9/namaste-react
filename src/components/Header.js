@@ -9,7 +9,7 @@ const Header = () => {
 
   useEffect(() =>{
     console.log("useEffet called");
-  }, []);
+  }, [btnNameReact]);
   return (
     <div className="header">
       <div className="logo-container">
