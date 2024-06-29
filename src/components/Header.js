@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import { LOGO_URL } from "../utils/constant";
 import { Link } from "react-router-dom";
 import Contact from "./Contact";
-
+import useOnlineStatus from "../utils/useOnlineStatus";
 
 const Header = () => {
   let btnName = "Login";
 
   const [btnNameReact, setBtnNameReact] = useState("Login");
-  console.log("Header render");
 
-  useEffect(() =>{
+  const onlineStatus = useOnlineStatus();
+
+  useEffect(() => {
     console.log("useEffet called");
   }, [btnNameReact]);
   return (
@@ -20,14 +21,18 @@ const Header = () => {
       </div>
       <div className="nav-items">
         <ul>
+          <li>Online Status: {onlineStatus ? "✅" : "🔴"}</li>
           <li>
-            <Link to= "/"> Home</Link>
+            <Link to="/"> Home</Link>
           </li>
           <li>
             <Link to="about"> About Us</Link>
           </li>
           <li>
-            <Link to= "contact"> Contact Us</Link>
+            <Link to="contact"> Contact Us</Link>
+          </li>
+          <li>
+            <Link to="grocery"> Grocery</Link>
           </li>
           <li>Cart</li>
           <button
